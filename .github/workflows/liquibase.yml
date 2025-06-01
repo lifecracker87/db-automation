@@ -28,13 +28,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Needed for git diff between branches
-
-      - name: Install Liquibase
-        run: |
-          curl -L https://github.com/liquibase/liquibase/releases/download/v${LIQUIBASE_VERSION}/liquibase-${LIQUIBASE_VERSION}.tar.gz | tar xz
-          sudo mv liquibase /usr/local/bin/liquibase
-          liquibase --version
-
       - name: Generate changelog from diff (only for update)
         if: ${{ github.event.inputs.action == 'update' }}
         run: |
@@ -56,11 +49,11 @@ jobs:
           done
 
       - name: Apply Liquibase to Database 1
-        run: |
-          liquibase \
-            --changeLogFile=${LIQUIBASE_CHANGELOG} \
-            --url=${DB1_URL} \
-            --username=${DB1_USER} \
-            --password=${DB1_PASSWORD} \
-            ${{ github.event.inputs.action }}
+        uses: liquibase/liquibase-github-action@v7
+        with:
+          operation: ${{ github.event.inputs.action }}
+          changeLogFile: master.xml
+          url: ${{ secrets.DB1_URL }}
+          username: ${{ secrets.DB1_USER }}
+          password: ${{ secrets.DB1_PASSWORD }}
 
