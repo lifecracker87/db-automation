@@ -1,0 +1,46 @@
+# CONFIGURATION
+$RawSqlDir = "src"
+$ChangelogDir = "changelog"
+$MasterSqlFile = "master.sql"
+$Author = "bhim.sharma"
+$Timestamp = Get-Date -Format "yyyyMMddHHmmss"
+
+# Ensure folders exist
+if (!(Test-Path $ChangelogDir)) {
+    New-Item -ItemType Directory -Path $ChangelogDir | Out-Null
+}
+if (!(Test-Path $MasterSqlFile)) {
+    New-Item -ItemType File -Path $MasterSqlFile | Out-Null
+}
+
+Write-Host "🧱 Initializing Liquibase changelogs from raw SQL..."
+
+# Loop through each .sql file in the raw SQL directory
+Get-ChildItem -Path $RawSqlDir -Filter *.sql -Recurse | ForEach-Object {
+    $FilePath = $_.FullName
+    $FileName = $_.Name
+    $NameNoExt = $_.BaseName
+    $ChangesetId = "${NameNoExt}_${Timestamp}"
+    $ChangelogFile = Join-Path $ChangelogDir "init_${ChangesetId}.sql"
+
+    # Read original SQL content
+    $SqlContent = Get-Content $FilePath -Raw
+
+    # Build Liquibase-formatted SQL
+    $LiquibaseSql = @"
+$SqlContent
+"@
+
+    # Write to changelog file
+    $LiquibaseSql | Set-Content $ChangelogFile -Encoding UTF8
+
+    # Append include to master.sql if not already included
+    $IncludeLine = "--include $ChangelogFile"
+    if (-not (Select-String -Path $MasterSqlFile -Pattern [regex]::Escape($IncludeLine) -Quiet)) {
+        Add-Content -Path $MasterSqlFile -Value $IncludeLine
+    }
+
+    Write-Host "✅ Created: $ChangelogFile"
+}
+
+Write-Host "🎉 Initial changelogs created and added to $MasterSqlFile"
