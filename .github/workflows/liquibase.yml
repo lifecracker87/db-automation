@@ -1,0 +1,66 @@
+name: Liquibase DB Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'update'
+        type: choice
+        options:
+          - update
+          - rollback
+
+jobs:
+  db-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      LIQUIBASE_VERSION: "4.27.0"
+      LIQUIBASE_CHANGELOG: "master.xml"
+      DB1_URL: "jdbc:mariadb://localhost/db_proj"
+      DB1_USER: "root"
+      DB1_PASSWORD: "root"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for git diff between branches
+
+      - name: Install Liquibase
+        run: |
+          curl -L https://github.com/liquibase/liquibase/releases/download/v${LIQUIBASE_VERSION}/liquibase-${LIQUIBASE_VERSION}.tar.gz | tar xz
+          sudo mv liquibase /usr/local/bin/liquibase
+          liquibase --version
+
+      - name: Generate changelog from diff (only for update)
+        if: ${{ github.event.inputs.action == 'update' }}
+        run: |
+          mkdir -p changelog
+          LATEST_RELEASE_BRANCH=$(git branch -r | grep 'origin/release/' | sed 's|origin/||' | sort -V | tail -n 1)
+          echo "Latest release branch is: $LATEST_RELEASE_BRANCH"
+          git fetch origin $LATEST_RELEASE_BRANCH
+          DIFF_FILES=$(git diff origin/master..origin/$LATEST_RELEASE_BRANCH --name-only sql/*.sql || true)
+          
+          if [ -z "$DIFF_FILES" ]; then
+            echo "No changes to apply"
+            exit 0
+          fi
+
+          TS=$(date +"%Y%m%d_%H%M%S")
+          for file in $DIFF_FILES; do
+            base=$(basename $file)
+            cp "$file" "changelog/${TS}_$base"
+          done
+
+      - name: Apply Liquibase to Database 1
+        run: |
+          liquibase \
+            --changeLogFile=${LIQUIBASE_CHANGELOG} \
+            --url=${DB1_URL} \
+            --username=${DB1_USER} \
+            --password=${DB1_PASSWORD} \
+            ${{ github.event.inputs.action }}
+
