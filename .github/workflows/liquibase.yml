@@ -11,8 +11,8 @@ on:
         options:
           - update
           - rollback
-      rollback_date:
-        description: 'Rollback to date (e.g., 2024-12-01T12:00:00)'
+      rollback_exp:
+        description: 'Rollback Exp(e.g., rollbackToDate 2024-12-01T12:00:00)'
         required: false
 
 jobs:
@@ -44,25 +44,31 @@ jobs:
         CHANGELOG_FILE=master.xml
 
         if [ "${{ github.event.inputs.operation }}" = "update" ]; then
-          liquibase \
-            --url="jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME" \
-            --username=$DB_USER \
-            --password=$DB_PASSWORD \
-            --changeLogFile=$CHANGELOG_FILE \
-            update
-
+          while IFS=',' read -r url user pass; do
+            echo "Updating DB: $url"
+            liquibase \
+              --url="$url" \
+              --username="$user" \
+              --password="$pass" \
+              --changeLogFile=$CHANGELOG_FILE \
+              update
+          done < db_servers.txt
+          
         elif [ "${{ github.event.inputs.operation }}" = "rollback" ]; then
-          if [ -z "${{ github.event.inputs.rollback_date }}" ]; then
-            echo "❌ rollback_date is required for rollback"
+          if [ -z "${{ github.event.inputs.rollback_exp }}" ]; then
+            echo "❌ rollback expression is required for rollback"
             exit 1
           fi
-
-          liquibase \
-            --url="jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME" \
-            --username=$DB_USER \
-            --password=$DB_PASSWORD \
-            --changeLogFile=$CHANGELOG_FILE \
-            rollbackToDate "${{ github.event.inputs.rollback_date }}"
+          while IFS=',' read -r url user pass; do
+            echo "Rolling Back DB: $url"
+            liquibase \
+              --url="$url" \
+              --username="$user" \
+              --password="$pass" \
+              --changeLogFile=$CHANGELOG_FILE \
+              "${{ github.event.inputs.rollback_exp }}"
+          done < db_servers.txt
+          
         else
           echo "❌ Invalid operation"
           exit 1
