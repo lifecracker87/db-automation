@@ -1,10 +1,10 @@
 --liquibase formatted sql
 
---changeset bhim.sharma:Create Procedure User Count
+--changeset bhim.sharma:100
 
-CREATE PROCEDURE account_count()
+CREATE PROCEDURE a_proc()
 BEGIN
-  SELECT 'Number of accounts:', COUNT(*) FROM mysql.user;
+  SELECT 'foo' AS foo, 'bar' AS bar;
 END;
 
---rollback DROP PROCEDURE account_count;
+--rollback DROP PROCEDURE a_proc;
