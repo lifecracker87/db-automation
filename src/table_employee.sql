@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset bhim.sharma:Create Table Employees
+--changeset bhim.sharma:102 runOnChange:true
 
 CREATE TABLE employees (
     emp_no      INT             NOT NULL,
