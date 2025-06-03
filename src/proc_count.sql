@@ -1,10 +1,11 @@
 --liquibase formatted sql
 
 --changeset bhim.sharma:100
-
-CREATE PROCEDURE a_proc()
+CREATE OR REPLACE FUNCTION a_proc()
+RETURNS TABLE(foo TEXT, bar TEXT) AS $$
 BEGIN
-  SELECT 'foo' AS foo, 'bar' AS bar;
+  RETURN QUERY SELECT 'foo', 'bar';
 END;
+$$ LANGUAGE plpgsql;
 
---rollback DROP PROCEDURE a_proc;
+--rollback DROP FUNCTION IF EXISTS a_proc();
