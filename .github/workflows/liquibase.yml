@@ -40,7 +40,7 @@ jobs:
         DB_PASSWORD=zxPwFjtFnuZQLc
         DB_HOST=84.247.178.158
         DB_PORT=5432
-        DB_NAME=auto_db1
+        DB_NAME=db_auto1
         CHANGELOG_FILE=master.xml
 
         if [ "${{ github.event.inputs.operation }}" = "update" ]; then
