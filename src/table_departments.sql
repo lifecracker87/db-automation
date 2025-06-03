@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset bhim.sharma:Create Table Departments
+--changeset bhim.sharma:101
 
 CREATE TABLE departments (
     dept_no     CHAR(4)         NOT NULL,
