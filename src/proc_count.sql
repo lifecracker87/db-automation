@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset bhim.sharma:100
+--changeset bhim.sharma:100 runWith:psql
 CREATE PROCEDURE log_message()
 LANGUAGE plpgsql
 AS $$
@@ -9,4 +9,4 @@ BEGIN
 END;
 $$;
 
---rollback DROP PROCEDURE IF EXISTS log_message();
+--rollback DROP PROCEDURE IF EXISTS log_message;
