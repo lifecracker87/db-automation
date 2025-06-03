@@ -66,7 +66,7 @@ jobs:
               --username="$user" \
               --password="$pass" \
               --changeLogFile=$CHANGELOG_FILE \
-              "${{ github.event.inputs.rollback_exp }}"
+              ${{ github.event.inputs.rollback_exp }}
           done < db_servers.txt
           
         else
