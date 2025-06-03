@@ -32,7 +32,7 @@ jobs:
     - name: Download Liquibase
       run: |
         curl -sL https://trustetechnology.com/liquibase-4.32.0.tar.gz | tar xz
-        sudo ln -s $PWD/liquibase/liquibase /usr/local/bin/liquibase
+        sudo ln -s $PWD/liquibase /usr/local/bin/liquibase
 
     - name: Run Liquibase
       run: |
