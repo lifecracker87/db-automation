@@ -1,59 +1,69 @@
-name: Liquibase DB Deploy
+name: Liquibase Migration
 
 on:
   workflow_dispatch:
     inputs:
-      action:
-        description: 'Action to perform'
+      operation:
+        description: 'Liquibase operation'
         required: true
         default: 'update'
         type: choice
         options:
           - update
           - rollback
+      rollback_date:
+        description: 'Rollback to date (e.g., 2024-12-01T12:00:00)'
+        required: false
 
 jobs:
-  db-deploy:
+  liquibase:
     runs-on: ubuntu-latest
 
-    env:
-      LIQUIBASE_VERSION: "4.27.0"
-      LIQUIBASE_CHANGELOG: "master.xml"
-      DB1_URL: "jdbc:mariadb://localhost/db_proj"
-      DB1_USER: "root"
-      DB1_PASSWORD: "root"
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Needed for git diff between branches
-      - name: Generate changelog from diff (only for update)
-        if: ${{ github.event.inputs.action == 'update' }}
-        run: |
-          mkdir -p changelog
-          LATEST_RELEASE_BRANCH=$(git branch -r | grep 'origin/release/' | sed 's|origin/||' | sort -V | tail -n 1)
-          echo "Latest release branch is: $LATEST_RELEASE_BRANCH"
-          git fetch origin $LATEST_RELEASE_BRANCH
-          DIFF_FILES=$(git diff origin/master..origin/$LATEST_RELEASE_BRANCH --name-only sql/*.sql || true)
-          
-          if [ -z "$DIFF_FILES" ]; then
-            echo "No changes to apply"
-            exit 0
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: temurin
+        java-version: 17
+
+    - name: Download Liquibase
+      run: |
+        curl -sL https://trustetechnology.com/liquibase-4.32.0.tar.gz | tar xz
+        sudo ln -s $PWD/liquibase/liquibase /usr/local/bin/liquibase
+
+    - name: Run Liquibase
+      run: |
+        DB_USER=bhim1
+        DB_PASSWORD=zxPwFjtFnuZQLc
+        DB_HOST=84.247.178.158
+        DB_PORT=5432
+        DB_NAME=auto_db1
+        CHANGELOG_FILE=master.xml
+
+        if [ "${{ github.event.inputs.operation }}" = "update" ]; then
+          liquibase \
+            --url="jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME" \
+            --username=$DB_USER \
+            --password=$DB_PASSWORD \
+            --changeLogFile=$CHANGELOG_FILE \
+            update
+
+        elif [ "${{ github.event.inputs.operation }}" = "rollback" ]; then
+          if [ -z "${{ github.event.inputs.rollback_date }}" ]; then
+            echo "❌ rollback_date is required for rollback"
+            exit 1
           fi
 
-          TS=$(date +"%Y%m%d_%H%M%S")
-          for file in $DIFF_FILES; do
-            base=$(basename $file)
-            cp "$file" "changelog/${TS}_$base"
-          done
-
-      - name: Apply Liquibase to Database 1
-        uses: liquibase/liquibase-github-action@v7
-        with:
-          operation: ${{ github.event.inputs.action }}
-          changeLogFile: master.xml
-          url: ${{ secrets.DB1_URL }}
-          username: ${{ secrets.DB1_USER }}
-          password: ${{ secrets.DB1_PASSWORD }}
-
+          liquibase \
+            --url="jdbc:postgresql://$DB_HOST:$DB_PORT/$DB_NAME" \
+            --username=$DB_USER \
+            --password=$DB_PASSWORD \
+            --changeLogFile=$CHANGELOG_FILE \
+            rollbackToDate "${{ github.event.inputs.rollback_date }}"
+        else
+          echo "❌ Invalid operation"
+          exit 1
+        fi
