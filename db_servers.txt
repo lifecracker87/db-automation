@@ -1,2 +1,2 @@
-jdbc:postgresql://84.247.178.158/db_auto1,bhim1,zxPwFjtFnuZQLc
-jdbc:postgresql://84.247.178.158/db_auto2,bhim2,zxPwFjtFn.uZQLxc
+jdbc:mariadb://84.247.178.158:3307/db_auto1,bhim1,zxPwFjtFnuZQLc
+jdbc:mariadb://84.247.178.158:3307/db_auto2,bhim2,zxPwFjtFn.uZQLxc
