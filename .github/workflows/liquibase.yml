@@ -36,6 +36,7 @@ jobs:
 
     - name: Run Liquibase
       run: |
+        CHANGELOG_FILE=master.xml
         if [ "${{ github.event.inputs.operation }}" = "update" ]; then
           while IFS=',' read -r url user pass; do
             echo "Updating DB: $url"
