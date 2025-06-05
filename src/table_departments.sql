@@ -11,7 +11,7 @@ CREATE TABLE departments (
 --rollback DROP TABLE departments;
 
 --changeset bhim.sharma:104
-ALTER TABLE departments add column new_col varchar(20);
+ALTER TABLE departments add new_col varchar(20);
 
 --rollback ALTER TABLE departments drop column new_col;
 
