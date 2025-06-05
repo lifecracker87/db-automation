@@ -1,2 +1,2 @@
-jdbc:mariadb://84.247.178.158:3307/db_auto1,bhim1,zxPwFjtFnuZQLc
-jdbc:mariadb://84.247.178.158:3307/db_auto2,bhim2,zxPwFjtFn.uZQLxc
+jdbc:oracle:thin:@//84.247.178.158:1521/FREEPDB1,db_auto1,zxPwFjtFnuZQLc
+jdbc:oracle:thin:@//84.247.178.158:1521/FREEPDB1,db_auto2,zxPwFjtFn.uZQLxc
