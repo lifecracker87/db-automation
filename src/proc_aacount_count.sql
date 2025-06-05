@@ -1,12 +1,9 @@
 ﻿--liquibase formatted sql
 
 --changeset bhim.sharma:100 runOnChange:true
-CREATE OR REPLACE PROCEDURE account_count()
+CREATE OR REPLACE PROCEDURE greet_user (username IN VARCHAR2) AS
 BEGIN
-  SELECT 'Number of accounts in DB:', COUNT(*) FROM mysql.user;
-END;
+  DBMS_OUTPUT.PUT_LINE('Hello, ' || username || '!');
+END greet_user;
 
---rollback CREATE OR REPLACE PROCEDURE account_count()
---rollback BEGIN
---rollback SELECT 'Number of accounts:', COUNT(*) FROM mysql.user;
---rollback END;
+--rollback DROP PROCEDURE IF EXISTS greet_user;
